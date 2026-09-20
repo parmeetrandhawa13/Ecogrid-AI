@@ -1,0 +1,6 @@
+{
+  "name": "EcoGrid AI",
+  "description": "Intelligent Renewable Energy Planning & Forecasting Platform providing GIS suitability, Solar & Wind ML predictions, time-series forecasting, LCOE economics, and decision intelligence.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecogrid_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://ecogrid:ecogrid_secure_pass@db:5432/ecogrid_db?schema=public
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - VITE_MAPBOX_TOKEN=${VITE_MAPBOX_TOKEN:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - app_data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  db:
+    image: postgres:16-alpine
+    container_name: ecogrid_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ecogrid
+      POSTGRES_PASSWORD: ecogrid_secure_pass
+      POSTGRES_DB: ecogrid_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/db/schema.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecogrid -d ecogrid_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  app_data:
+  postgres_data:
